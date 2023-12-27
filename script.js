@@ -11,6 +11,11 @@ const products = [
 
 // DOM elements
 const productList = document.getElementById("product-list");
+const cartList = document.getElementById("cart-list");
+const clearCartBtn = document.getElementById("clear-cart-btn");
+
+// Cart data
+let cart = JSON.parse(sessionStorage.getItem('cart')) || [];
 
 // Render product list
 function renderProducts() {
@@ -22,17 +27,62 @@ function renderProducts() {
 }
 
 // Render cart list
-function renderCart() {}
+function renderCart() {
+  cartList.innerHTML = '';
+  cart.forEach((item) => {
+    const li = document.createElement("li");
+    const product = products.find(p => p.id === item.id);
+    li.innerHTML = `${product.name} - Quantity: ${item.quantity} <button class="remove-from-cart-btn" data-id="${item.id}">Remove</button>`;
+    cartList.appendChild(li);
+  });
+}
 
 // Add item to cart
-function addToCart(productId) {}
+function addToCart(productId) {
+  const existingProduct = cart.find(item => item.id === productId);
+
+  if (existingProduct) {
+    existingProduct.quantity++;
+  } else {
+    cart.push({ id: productId, quantity: 1 });
+  }
+
+  sessionStorage.setItem('cart', JSON.stringify(cart));
+  renderCart();
+}
 
 // Remove item from cart
-function removeFromCart(productId) {}
+function removeFromCart(productId) {
+  cart = cart.filter(item => item.id !== productId);
+  sessionStorage.setItem('cart', JSON.stringify(cart));
+  renderCart();
+}
 
 // Clear cart
-function clearCart() {}
+function clearCart() {
+  cart = [];
+  sessionStorage.removeItem('cart');
+  renderCart();
+}
 
+// Event delegation for add-to-cart and remove-from-cart buttons
+document.addEventListener('click', function (event) {
+  const target = event.target;
+
+  if (target.classList.contains('add-to-cart-btn')) {
+    const productId = parseInt(target.dataset.id);
+    addToCart(productId);
+  }
+
+  if (target.classList.contains('remove-from-cart-btn')) {
+    const productId = parseInt(target.dataset.id);
+    removeFromCart(productId);
+  }
+
+  if (target === clearCartBtn) {
+    clearCart();
+  }
+});
 // Initial render
 renderProducts();
 renderCart();
